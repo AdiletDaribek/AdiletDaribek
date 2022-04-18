@@ -33,7 +33,7 @@ import cv2
 
 class Database:
     def __init__(self):
-        self.client = MongoClient('mongodb://database:27017/')
+        self.client = MongoClient('mongodb://localhost:27017/')
         self.db = self.client['inGate_upravdom']
         self.check = self.db['check']
         if self.check.count_documents({}) == 0:
@@ -49,9 +49,9 @@ class Database:
             data["_id"] = None
         return result
 
-    def get_one(self, table, key, data):
+    def get_one(self, table):
         try:
-            result = table.find_one({key: data}, {'_id': False})
+            result = table.find_one({}, {'_id': False})
             return dict(result)
         except:
             return None
@@ -99,15 +99,9 @@ async def paid(controller_id: str):
 
 @app.get("/list", tags=['list'])
 async def list_():
-    try:
-        controllers = DB.get_all(DB.check)
+        controllers = DB.get_one(DB.check)
         ans=controllers
-        DB.check.find_one_and_update({'new': controllers['new']},{"$set":{
-            'new':'0',
-            'count':'0',
-            'pay':'0'
-            }})
+        if controllers['new']!='0': DB.check.find_one_and_update({'new': controllers['new']},{"$set":{'new':'0'}})
+        if controllers['count']!='0': DB.check.find_one_and_update({'count': controllers['count']},{"$set":{'count':'0'}})
+        if controllers['pay']!='0': DB.check.find_one_and_update({'pay': controllers['pay']},{"$set":{'pay':'0'}})
         return ans
-    except:
-        return "not working"
-
