@@ -33,7 +33,7 @@ import cv2
 
 class Database:
     def __init__(self):
-        self.client = MongoClient('mongodb://localhost:27017/')
+        self.client = MongoClient('mongodb://database:27017/')
         self.db = self.client['inGate_upravdom']
         self.check = self.db['check']
         if self.check.count_documents({}) == 0:
@@ -69,19 +69,8 @@ class Database:
     
     def initial_populate(self):
         door = {
-            "type":"new",
-            "new": "0"
-        }
-        self.insert(self.check, door)
-
-        door = {
-            "type":"count",
-            "count": "0"
-        }
-        self.insert(self.check, door)
-
-        door = {
-            "type":"pay",
+            "new": "0",
+            "count": "0",
             "pay": "0"
         }
         self.insert(self.check, door)
@@ -108,17 +97,17 @@ async def count(controller_id: str):
 async def paid(controller_id: str):
     DB.check.find_one_and_update({'pay': '0'},{"$set":{'pay': controller_id}})
 
-@app.get("/list_active", tags=['active'])
-async def list_of_active():
+@app.get("/list", tags=['list'])
+async def list_():
     try:
         controllers = DB.get_all(DB.check)
-        #DB.delete(DB.check)
-        return controllers
+        ans=controllers
+        DB.check.find_one_and_update({'new': controllers['new']},{"$set":{
+            'new':'0',
+            'count':'0',
+            'pay':'0'
+            }})
+        return ans
     except:
         return "not working"
 
-@app.get("/status", tags=['status'])
-async def status(type: str):
-    controller = DB.get_one(DB.check, "type", type)
-    if controller:
-        return controller[type]

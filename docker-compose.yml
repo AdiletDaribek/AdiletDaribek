@@ -1,0 +1,75 @@
+version: '3'
+
+services:
+  api:
+    restart: always
+    build:
+       context: ./services/api
+    command: gunicorn main:app --bind 0.0.0.0:5000 -w 4 -k uvicorn.workers.UvicornWorker
+    volumes:
+      - ~/inGate_upravdom/:/home/app/api
+    depends_on:
+      - database
+    expose:
+      - 5000
+    ports:
+      - 5555:5000
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.fastapi.rule=Host(`oceanmind.cleverest.tech`)"
+    #   - "traefik.http.routers.fastapi.tls=true"
+    #   - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
+      # - "traefik.http.services.my-service.loadbalancer.server.port=5000"
+
+ # api_controller:
+ #   restart: always
+ #   build:
+ #       context: ./services/api_controller
+ #   command: gunicorn main:app --bind 0.0.0.0:5000 -w 4 -k uvicorn.workers.UvicornWorker
+ #   volumes:
+ #     - ~/inGate_upravdom/:/home/app/api2
+ #   depends_on:
+ #     - database
+ #   ports:
+ #     - 7777:5000
+  
+  # traefik:
+  #   restart: always
+  #   image: traefik:v2.4.8
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #     - "$PWD/services/traefik/traefik.prod.toml:/etc/traefik/traefik.toml"
+  
+  database:
+    restart: always
+    # ports: 
+    #   - "27017:27017"
+    #image: mongodb:5.0
+    image: mongo:4.2
+    volumes: 
+      - ~/inGate_upravdom/:/data/db/
+    
+  # mongo-express:
+  #   restart: always
+  #   image: mongo-express
+  #   environment:
+  #     - ME_CONFIG_MONGODB_SERVER=database
+  #     - ME_CONFIG_MONGODB_PORT=27017
+  #     - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+  #     - ME_CONFIG_MONGODB_AUTH_DATABASE=inGate_upravdom
+  #     - ME_CONFIG_BASICAUTH_USERNAME=JohnDoe
+  #     - ME_CONFIG_BASICAUTH_PASSWORD=12345678
+  #   ports:
+  #     - "8081:8081"
+  #   links:
+  #     - database
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "1m"
+  #       max-file: "10"
+  #   depends_on:
+  #     - database
