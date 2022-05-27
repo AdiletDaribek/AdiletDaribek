@@ -5,15 +5,13 @@ services:
     restart: always
     build:
        context: ./services/api
-    command: gunicorn main:app --bind 0.0.0.0:5000 -w 4 -k uvicorn.workers.UvicornWorker
+    command: gunicorn main:app --bind 0.0.0.0:7788 -w 4 -k uvicorn.workers.UvicornWorker
     volumes:
       - ~/inGate_upravdom/:/home/app/api
     depends_on:
       - database
-    expose:
-      - 5000
     ports:
-      - 5555:5000
+      - 5555:7788
     # labels:
     #   - "traefik.enable=true"
     #   - "traefik.http.routers.fastapi.rule=Host(`oceanmind.cleverest.tech`)"
