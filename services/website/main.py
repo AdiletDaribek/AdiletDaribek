@@ -38,9 +38,6 @@ class Database:
         self.check = self.db['check']
         self.gate = self.db['gate']
         self.photo = self.db['photo']
-        self.active = self.db['active']
-        self.archive = self.db['archive']
-
         if self.check.count_documents({}) == 0 or self.gate.count_documents({}) == 0:
             self.initial_populate()
 
@@ -54,16 +51,9 @@ class Database:
             data["_id"] = None
         return result
 
-    def get_only_one(self, table):
+    def get_one(self, table):
         try:
             result = table.find_one({}, {'_id': False})
-            return dict(result)
-        except:
-            return None
-
-    def get_one(self, table, key, data):
-        try:
-            result = table.find_one({key: data}, {'_id': False})
             return dict(result)
         except:
             return None
@@ -79,10 +69,6 @@ class Database:
         result = table.delete_many({})
         return result
     
-    def delete_one(self, table):
-        result = table.delete_one({})
-        return result
-
     def initial_populate(self):
         if self.check.count_documents({}) == 0:
             door = {
@@ -113,42 +99,6 @@ app = FastAPI(
     }
 )   
 
-@app.get("/add_active", tags=['add_active'])
-async def add_active(controller:dict):
-    DB.insert(DB.active, controller)
-    return "added successfully"
-
-@app.get("/search_active", tags=['search_active'])
-async def search_active(plate:str):
-    check=DB.get_one(DB.active, "plate", plate)
-    return check
-
-@app.get("/add_archive", tags=['add_archive'])
-async def add_archive(controller:dict):
-    DB.insert(DB.archive, controller)
-    return "added successfully"
-
-@app.get("/list_active", tags=['list_active'])
-async def list_active():
-    controllers = DB.get_all(DB.active)
-    return controllers
-
-@app.get("/list_archive", tags=['list_archive'])
-async def list_archive():
-    controllers = DB.get_all(DB.archive)
-    return controllers
-
-@app.post("/delete_active")
-async def delete_active():    
-    DB.delete_one(DB.active)
-    return "added successfully"
-
-@app.post("/delete_archive")
-async def delete_archive():    
-    DB.delete_one(DB.archive)
-    return "added successfully"
-
-
 @app.get("/new", tags=['new'])
 async def doors():
     DB.check.find_one_and_update({'new': '0'},{"$set":{'new': '1'}})
@@ -171,7 +121,7 @@ async def pay_back():
 
 @app.get("/photo", tags=['photo'])
 async def photo(num: str):
-    ch=DB.get_only_one(DB.photo)
+    ch=DB.get_one(DB.photo)
     if ch:
         DB.delete(DB.photo)
     
@@ -182,13 +132,13 @@ async def photo(num: str):
 
 @app.get("/get_photo", tags=['get_photo'])
 async def get_photo():
-    ch=DB.get_only_one(DB.photo)
+    ch=DB.get_one(DB.photo)
     return ch["last"]
 
 
 @app.get("/list", tags=['list'])
 async def list_():
-        controllers = DB.get_only_one(DB.check)
+        controllers = DB.get_one(DB.check)
         ans=controllers
         #if controllers['new']!='0': DB.check.find_one_and_update({'new': controllers['new']},{"$set":{'new':'0'}})
         #if controllers['count']!='0': DB.check.find_one_and_update({'count': controllers['count']},{"$set":{'count':'0'}})
