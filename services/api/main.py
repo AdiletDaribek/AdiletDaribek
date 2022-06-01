@@ -250,23 +250,25 @@ async def ask_qr():
     try:
         DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
         last=DB.get_only_one(DB.qr)
-        DB.delete(DB.qr)
-        date=datetime.datetime.now()
-        door={
-            'plate': str(last['plate']),
-            'date_in': str(last['date_in']),
-            'date_out': str(date),
-            'time_spent': str(last['minutes']),
-            'payment': 'yes',
-            'money': str(int(last['minutes'])*2),
-            'gate_in': '1',
-            'gate_out': '2',
-            'comment': 'undefined'
-        }
-        # DB.delete_exact_one(DB.active, 'plate', last['plate'])
-        DB.insert(DB.archive, door)
-        strin='гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
-        requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
+        if last:
+            DB.delete(DB.qr)
+            date=datetime.datetime.now()
+            door={
+                'plate': str(last['plate']),
+                'date_in': str(last['date_in']),
+                'date_out': str(date),
+                'time_spent': str(last['minutes']),
+                'payment': 'yes',
+                'money': str(int(last['minutes'])*2),
+                'gate_in': '1',
+                'gate_out': '2',
+                'comment': 'undefined'
+            }
+            # DB.delete_exact_one(DB.active, 'plate', last['plate'])
+            DB.insert(DB.archive, door)
+            strin='гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
+            requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
+        else: return "not found"
     except:
         return "something went wrong"
 
