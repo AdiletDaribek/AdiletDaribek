@@ -33,7 +33,7 @@ import cv2
 
 class Database:
     def __init__(self):
-        self.client = MongoClient('mongodb://database:27017/')
+        self.client = MongoClient('mongodb://localhost:27017/')
         self.db = self.client['inGate_upravdom']
         self.check = self.db['check']
         self.gate = self.db['gate']
@@ -41,6 +41,8 @@ class Database:
         self.active = self.db['active']
         self.archive = self.db['archive']
         self.qr = self.db['qr']
+        self.white = self.db['white']
+        self.black = self.db['black']
 
     def insert(self, table, data):
         if type(data) == list:
@@ -139,12 +141,58 @@ def count_minutes(inn, out):
     ans=(m+(h*60)+(D*1440)+(M*43800)+(Y*525600))
     return ans
 
+@app.get("/add_white", tags=['add_white'])
+async def add_white(plate:str):
+    door={'plate':plate}
+    DB.insert(DB.white, door)
+    return "added successfully"
+
+@app.get("/add_black", tags=['add_black'])
+async def add_black(plate:str):
+    door={'plate':plate}
+    DB.insert(DB.black, door)
+    return "added successfully"
+
+@app.get("/list_white", tags=['list_white'])
+async def add_white():
+    controllers = DB.get_all(DB.white)
+    return controllers
+
+@app.get("/list_black", tags=['list_black'])
+async def add_black():
+    controllers = DB.get_all(DB.black)
+    return controllers
+
 @app.get("/qr", tags=['qr'])
 async def qr(plate:str, entry_date:str):
     car=DB.get_one(DB.active, "plate", plate)
-    if car:
-        date = datetime.datetime.now()
-        minutes=count_minutes(str(entry_date),str(date))
+    black=DB.get_one(DB.black,'plate',plate)
+    white=DB.get_one(DB.white,'plate',plate)
+    date = datetime.datetime.now()
+    minutes=count_minutes(str(entry_date),str(date))
+    if black: 
+        text='машина в черном списке'
+        requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
+
+    elif white:
+        DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
+        door={
+            'plate': str(plate),
+            'date_in': str(entry_date),
+            'date_out': str(date),
+            'time_spent': str(minutes),
+            'payment': 'yes',
+            'money': str(minutes*2),
+            'gate_in': '1',
+            'gate_out': '2',
+            'comment': 'undefined'
+        }
+        DB.delete_exact_one(DB.active, 'plate', plate)
+        DB.insert(DB.archive, door)
+        strin='гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
+        requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
+
+    elif car:
         door={
             'plate': plate,
             'date_in':entry_date,
@@ -155,7 +203,7 @@ async def qr(plate:str, entry_date:str):
         text="qr готов"+'\n'+"сумма: %s"%(minutes*2)
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
     else:
-        text='машина в черном списке'
+        text='машина  не заходила'
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
 
 
@@ -203,7 +251,7 @@ async def ask_qr():
         'gate_out': '2',
         'comment': 'undefined'
     }
-    # DB.delete_exact_one(DB.active, 'plate', last['plate'])
+    DB.delete_exact_one(DB.active, 'plate', last['plate'])
     DB.insert(DB.archive, door)
     strin='гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
     requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
