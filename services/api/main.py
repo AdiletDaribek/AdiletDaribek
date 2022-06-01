@@ -239,7 +239,7 @@ async def list_():
         #if controllers['new']!='0': DB.check.find_one_and_update({'new': controllers['new']},{"$set":{'new':'0'}})
         #if controllers['count']!='0': DB.check.find_one_and_update({'count': controllers['count']},{"$set":{'count':'0'}})
         #if controllers['pay']!='0': DB.check.find_one_and_update({'pay': controllers['pay']},{"$set":{'pay':'0'}})
-#         return ans
+        return ans
 
 # @app.get("/list_gate", tags=['list_gate'])
 # async def list_gate():
