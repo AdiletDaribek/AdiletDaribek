@@ -33,7 +33,7 @@ import cv2
 
 class Database:
     def __init__(self):
-        self.client = MongoClient('mongodb://localhost:27017/')
+        self.client = MongoClient('mongodb://database:27017/')
         self.db = self.client['inGate_upravdom']
         self.check = self.db['check']
         self.gate = self.db['gate']
