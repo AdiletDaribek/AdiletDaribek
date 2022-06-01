@@ -154,14 +154,24 @@ async def add_black(plate:str):
     return "added successfully"
 
 @app.get("/list_white", tags=['list_white'])
-async def add_white():
+async def list_white():
     controllers = DB.get_all(DB.white)
     return controllers
 
 @app.get("/list_black", tags=['list_black'])
-async def add_black():
+async def list_black():
     controllers = DB.get_all(DB.black)
     return controllers
+
+@app.post("/delete_white")
+async def delete_white():    
+    DB.delete_one(DB.white)
+    return "deleted successfully"
+
+@app.post("/delete_black")
+async def delete_black():    
+    DB.delete_one(DB.white)
+    return "deleted successfully"
 
 @app.get("/qr", tags=['qr'])
 async def qr(plate:str, entry_date:str):
