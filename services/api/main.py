@@ -165,12 +165,12 @@ async def list_black():
 
 @app.post("/delete_white")
 async def delete_white():    
-    DB.delete_white(DB.white)
+    DB.delete(DB.white)
     return "deleted successfully"
 
 @app.post("/delete_black")
 async def delete_black():    
-    DB.delete_black(DB.black)
+    DB.delete(DB.black)
     return "deleted successfully"
 
 @app.get("/qr", tags=['qr'])
