@@ -249,6 +249,7 @@ async def ask(gat: str):
 async def ask_qr():
     DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
     last=DB.get_only_one(DB.qr)
+    DB.delete(DB.qr)
     date=datetime.datetime.now()
     door={
         'plate': str(last['plate']),
