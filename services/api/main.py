@@ -136,7 +136,7 @@ def count_minutes(inn, out):
     Y=int(out[2]+out[3])-int(inn[2]+inn[3])
     M=int(out[5]+out[6])-int(inn[5]+inn[6])
     D=int(out[8]+out[9])-int(inn[8]+inn[9])
-    h=int((out[11]+out[12])+6)-int(inn[11]+inn[12])
+    h=(int((out[11]+out[12]))+6)-int(inn[11]+inn[12])
     m=int(out[14]+out[15])-int(inn[14]+inn[15])
     ans=(m+(h*60)+(D*1440)+(M*43800)+(Y*525600))
     return ans
