@@ -174,7 +174,7 @@ async def delete_black():
     return "deleted successfully"
 
 @app.get("/qr", tags=['qr'])
-async def qr(plate:str, entry_date:str):
+async def qr(plate:str, entry_date:str, date:str):
     black=DB.get_one(DB.black,'plate',plate)
     if black: 
         text='машина в черном списке'
@@ -182,8 +182,7 @@ async def qr(plate:str, entry_date:str):
         return 'black list'
 
     white=DB.get_one(DB.white,'plate',plate)
-    date = datetime.datetime.now()
-    minutes=count_minutes(str(entry_date),str(date))
+    minutes=count_minutes(str(entry_date),date)
     if white:
         DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
         door={
