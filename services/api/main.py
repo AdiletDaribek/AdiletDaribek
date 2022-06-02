@@ -136,7 +136,7 @@ def count_minutes(inn, out):
     Y=int(out[2]+out[3])-int(inn[2]+inn[3])
     M=int(out[5]+out[6])-int(inn[5]+inn[6])
     D=int(out[8]+out[9])-int(inn[8]+inn[9])
-    h=int(out[11]+out[12])-int(inn[11]+inn[12])
+    h=int((out[11]+out[12])+6)-int(inn[11]+inn[12])
     m=int(out[14]+out[15])-int(inn[14]+inn[15])
     ans=(m+(h*60)+(D*1440)+(M*43800)+(Y*525600))
     return ans
@@ -184,8 +184,8 @@ async def qr(plate:str, entry_date:str):
     white=DB.get_one(DB.white,'plate',plate)
     date = datetime.datetime.now()
     if white:
-        minutes=count_minutes(str(entry_date),str(date))
         DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
+        minutes=count_minutes(str(entry_date),str(date))
         door={
             'plate': str(plate),
             'date_in': str(entry_date),
@@ -199,12 +199,14 @@ async def qr(plate:str, entry_date:str):
         }
         DB.delete_exact_one(DB.active, 'plate', plate)
         DB.insert(DB.archive, door)
-        strin='гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
+        strin='машина из белого списка'+'\n'+'гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
         return "white list"
 
     car=DB.get_one(DB.active, "plate", plate)
     if car:
+        text="qr готов"+'\n'+"сумма: %s"%(minutes*2)
+        requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
         door={
             'plate': plate,
             'date_in':entry_date,
@@ -212,8 +214,6 @@ async def qr(plate:str, entry_date:str):
         }
         DB.delete(DB.qr)
         DB.insert(DB.qr,door)
-        text="qr готов"+'\n'+"сумма: %s"%(minutes*2)
-        requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
     else:
         text='машина  не заходила'
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
