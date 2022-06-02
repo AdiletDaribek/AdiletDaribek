@@ -249,7 +249,7 @@ async def ask(gat: str):
 
 @app.get("/ask_qr", tags=['ask_qr'])
 async def ask_qr():
-    try:
+    # try:
         DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
         last=DB.get_only_one(DB.qr)
         if last:
@@ -271,8 +271,8 @@ async def ask_qr():
             strin='гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
             requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
         else: return "not found"
-    except:
-        return "something went wrong"
+    # except:
+    #     return "something went wrong"
 
 if __name__ == "__main__":
 	uvicorn.run("main:app", host="0.0.0.0", port=7788, reload=True, workers=4)
