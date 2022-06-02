@@ -183,9 +183,9 @@ async def qr(plate:str, entry_date:str):
 
     white=DB.get_one(DB.white,'plate',plate)
     date = datetime.datetime.now()
+    minutes=count_minutes(str(entry_date),str(date))
     if white:
         DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
-        minutes=count_minutes(str(entry_date),str(date))
         door={
             'plate': str(plate),
             'date_in': str(entry_date),
