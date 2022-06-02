@@ -210,6 +210,7 @@ async def qr(plate:str, date:str):
         door={
             'plate': plate,
             'date_in':car['date_in'],
+            'date':date,
             'minutes': str(minutes)
         }
         DB.delete(DB.qr)
@@ -258,7 +259,7 @@ async def ask_qr():
             door={
                 'plate': str(last['plate']),
                 'date_in': str(last['date_in']),
-                'date_out': str(date),
+                'date_out': str(last['date']),
                 'time_spent': str(last['minutes']),
                 'payment': 'yes',
                 'money': str(int(last['minutes'])*2),
