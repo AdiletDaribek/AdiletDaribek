@@ -174,41 +174,42 @@ async def delete_black():
     return "deleted successfully"
 
 @app.get("/qr", tags=['qr'])
-async def qr(plate:str, entry_date:str, date:str):
+async def qr(plate:str, date:str):
     black=DB.get_one(DB.black,'plate',plate)
     if black: 
         text='машина в черном списке'
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
         return 'black list'
 
-    white=DB.get_one(DB.white,'plate',plate)
-    minutes=count_minutes(str(entry_date),date)
-    if white:
-        DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
-        door={
-            'plate': str(plate),
-            'date_in': str(entry_date),
-            'date_out': str(date),
-            'time_spent': str(minutes),
-            'payment': 'yes',
-            'money': str(minutes*2),
-            'gate_in': '1',
-            'gate_out': '2',
-            'comment': 'undefined'
-        }
-        DB.delete_exact_one(DB.active, 'plate', plate)
-        DB.insert(DB.archive, door)
-        strin='машина из белого списка'+'\n'+'гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
-        requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
-        return "white list"
-
     car=DB.get_one(DB.active, "plate", plate)
     if car:
+        white=DB.get_one(DB.white,'plate',plate)
+        minutes=count_minutes(car['date_in'],date)
+        if white:
+            DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
+            door={
+                'plate': str(plate),
+                'date_in': car['date_in'],
+                'date_out': str(date),
+                'time_spent': str(minutes),
+                'payment': 'yes',
+                'money': str(minutes*2),
+                'gate_in': '1',
+                'gate_out': '2',
+                'comment': 'undefined'
+            }
+            DB.delete_exact_one(DB.active, 'plate', plate)
+            DB.insert(DB.archive, door)
+            strin='машина из белого списка'+'\n'+'гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
+            requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
+            return "white list"
+
+
         text="qr готов"+'\n'+"сумма: %s"%(minutes*2)
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
         door={
             'plate': plate,
-            'date_in':entry_date,
+            'date_in':car['date_in'],
             'minutes': str(minutes)
         }
         DB.delete(DB.qr)
@@ -265,7 +266,7 @@ async def ask_qr():
                 'gate_out': '2',
                 'comment': 'undefined'
             }
-            # DB.delete_exact_one(DB.active, 'plate', last['plate'])
+            DB.delete_exact_one(DB.active, 'plate', last['plate'])
             DB.insert(DB.archive, door)
             strin='гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
             requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
