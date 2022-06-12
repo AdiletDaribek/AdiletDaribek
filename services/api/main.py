@@ -33,7 +33,7 @@ import cv2
 
 class Database:
     def __init__(self):
-        self.client = MongoClient('mongodb://database:27017/')
+        self.client = MongoClient('mongodb://localhost:27017/')
         self.db = self.client['inGate_upravdom']
         self.check = self.db['check']
         self.gate = self.db['gate']
@@ -84,7 +84,7 @@ class Database:
         return result
     
     def delete_exact_one(self, table, key, data):
-        result = table.delete_one({key: data}, {'_id': False})
+        result = table.delete_one({key: data})
         return result
 
 
@@ -96,6 +96,13 @@ app = FastAPI(
         "name": "take",
     }
 )   
+
+@app.get("/get_active", tags=['get_active'])
+async def get_active(plate: str):
+    ans=DB.get_one(DB.active, 'plate', plate)
+    if ans:
+        DB.delete_exact_one(DB.active,'plate', plate)
+        return ans
 
 @app.get("/add_active", tags=['add_active'])
 async def add_active(controller:dict):
@@ -181,30 +188,30 @@ async def qr(plate:str, date:str):
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
         return 'black list'
 
+    white=DB.get_one(DB.white,'plate',plate)
+    if white:
+        DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
+        car=DB.get_one(DB.active, "plate", plate)
+        minutes=count_minutes(car['date_in'],date)
+        door={
+            'plate': str(plate),
+            'date_in': car['date_in'],
+            'date_out': str(date),
+            'time_spent': str(minutes),
+            'payment': 'yes',
+            'money': str(minutes*2),
+            'gate_in': '2',
+            'gate_out': '7',
+            'comment': 'undefined'
+        }
+        DB.delete_exact_one(DB.active, 'plate', plate)
+        DB.insert(DB.archive, door)
+        strin='машина из белого списка'+'\n'+'гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
+        requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
+        return "white list"
+
     car=DB.get_one(DB.active, "plate", plate)
     if car:
-        white=DB.get_one(DB.white,'plate',plate)
-        minutes=count_minutes(car['date_in'],date)
-        if white:
-            DB.gate.find_one_and_update({'gate': '2'},{"$set":{'status': '1'}})
-            door={
-                'plate': str(plate),
-                'date_in': car['date_in'],
-                'date_out': str(date),
-                'time_spent': str(minutes),
-                'payment': 'yes',
-                'money': str(minutes*2),
-                'gate_in': '1',
-                'gate_out': '2',
-                'comment': 'undefined'
-            }
-            DB.delete_exact_one(DB.active, 'plate', plate)
-            DB.insert(DB.archive, door)
-            strin='машина из белого списка'+'\n'+'гос. номер: '+door['plate']+'\n'+'время входа: '+ door['date_in']+'\n'+'время выхода: '+door['date_out']+'\n'+'проведенное время: '+door['time_spent'] +'мин'+'\n'+'платеж: '+door['payment']+'\n'+'сумма: '+door['money']+'тенге'+'\n'+'номер входа: '+door['gate_in']+'\n'+'номер выхода: '+door['gate_out']
-            requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%strin)
-            return "white list"
-
-
         text="qr готов"+'\n'+"сумма: %s"%(minutes*2)
         requests.get("https://api.telegram.org/bot5338192218:AAFI0hR1ViFYt-hyZ1OK0BrYOnKXQ9AxBCk/sendMessage?chat_id=-1001661843552&text=%s"%text)
         door={
