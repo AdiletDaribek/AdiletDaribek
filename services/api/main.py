@@ -7,7 +7,7 @@ from pymongo import MongoClient
 
 class Database:
     def __init__(self):
-        self.client = MongoClient('mongodb://database:27017/')
+        self.client = MongoClient('mongodb://localhost:27017/')
         self.db = self.client["azure"]
         self.check = self.db['check']
         if self.check.count_documents({}) == 0:
