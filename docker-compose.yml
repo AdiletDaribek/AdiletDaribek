@@ -7,7 +7,7 @@ services:
        context: ./services/api
     command: gunicorn main:app --bind 0.0.0.0:7788 -w 4 -k uvicorn.workers.UvicornWorker
     volumes:
-      - ~/azure/:/home/app/api
+      - ~/inGate_upravdom/:/home/app/api
     depends_on:
       - database
     ports:
@@ -48,7 +48,7 @@ services:
     #image: mongodb:5.0
     image: mongo:4.2
     volumes: 
-      - ~/azure/:/data/db/
+      - ~/inGate_upravdom/:/data/db/
     
   # mongo-express:
   #   restart: always
