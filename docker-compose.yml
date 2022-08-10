@@ -1,13 +1,13 @@
 version: '3'
 
 services:
-  api:
+  app:
     restart: always
     build:
-       context: ./services/api
+       context: ./app
     command: gunicorn main:app --bind 0.0.0.0:7788 -w 4 -k uvicorn.workers.UvicornWorker
     volumes:
-      - ~/inGate_upravdom/:/home/app/api
+      - ~/inGate_upravdom/:/home/app/app
     depends_on:
       - database
     ports:
